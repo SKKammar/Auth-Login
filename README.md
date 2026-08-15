@@ -1,4 +1,5 @@
-# FlyRank Internship Auth API
+# Auth and Login
+###### For learning purpose.
 
 A secure authentication API using Node.js, Express, and Supabase.
 
