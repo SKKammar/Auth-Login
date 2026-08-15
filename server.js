@@ -4,7 +4,11 @@ import { createClient } from '@supabase/supabase-js';
 import authRoutes from './routes/auth.js';
 import { verifyToken } from './middleware/auth.js';
 import swaggerUi from 'swagger-ui-express';
-import swaggerDocument from './swagger/openapi.json' assert { type: 'json' };
+import fs from 'fs';
+import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+
+const swaggerDocument = JSON.parse(fs.readFileSync(new URL('./swagger/openapi.json', import.meta.url), 'utf8'));
 
 dotenv.config();
 
@@ -20,10 +24,20 @@ const supabase = createClient(
 // Make supabase available to routes
 app.locals.supabase = supabase;
 
+// Enable CORS
+app.use(cors());
+
 app.use(express.json());
 
+// Rate limiter for auth routes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: { error: 'Too many requests from this IP, please try again later.' }
+});
+
 // Routes
-app.use('/auth', authRoutes);
+app.use('/auth', authLimiter, authRoutes);
 
 // Public route
 app.get('/public/info', (req, res) => {
