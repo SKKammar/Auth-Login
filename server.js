@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 import authRoutes from './routes/auth.js';
+import { verifyToken } from './middleware/auth.js';
 
 dotenv.config();
 
@@ -27,13 +28,18 @@ app.get('/public/info', (req, res) => {
   res.json({ message: 'Welcome stranger! This info is public.' });
 });
 
-// Protected profile (initially unverified)
-app.get('/protected/profile', (req, res) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Access token required' });
-  }
-  res.json({ message: 'Profile data (unverified for now)' });
+// Protected profile (verified)
+app.get('/protected/profile', verifyToken, (req, res) => {
+  res.json({
+    id: req.user.id,
+    email: req.user.email,
+    created_at: req.user.created_at
+  });
+});
+
+// Protected dashboard
+app.get('/protected/dashboard', verifyToken, (req, res) => {
+  res.json({ message: 'Dashboard data' });
 });
 
 app.listen(port, () => {
