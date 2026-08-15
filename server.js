@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 import authRoutes from './routes/auth.js';
 import { verifyToken } from './middleware/auth.js';
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocument from './swagger/openapi.json' assert { type: 'json' };
 
 dotenv.config();
 
@@ -41,6 +43,9 @@ app.get('/protected/profile', verifyToken, (req, res) => {
 app.get('/protected/dashboard', verifyToken, (req, res) => {
   res.json({ message: 'Dashboard data' });
 });
+
+// Swagger UI
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
